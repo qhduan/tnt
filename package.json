@@ -1,0 +1,25 @@
+{
+  "name": "ThirdNewTokyo",
+  "description": "Online Manga Viewer",
+  "version": "0.0.1",
+  "author": {
+    "name": "QHDuan",
+    "email": "mail@qhduan.com"
+  },
+  "keywords": [
+    "manga"
+  ],
+  "dependencies": {
+    "express": "*",
+    "body-parser": "*",
+    "compression": "*"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "main": "app.js",
+   "repository": {
+    "type": "git",
+    "url": "https://github.com/qhduan/qhweb.git"
+  }
+}

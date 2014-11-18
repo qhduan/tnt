@@ -1,0 +1,40 @@
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12">
+      
+      <div class="page-header">
+        <h1>
+          <a href="#/main">Third New Tokyo City</a>
+        </h1>
+      </div>
+      
+      <div class="container">
+        <div class="row">
+          <div ng-repeat="m in mangaList" class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
+            <div class="panel panel-default">
+              <div class="panel-heading text-center">
+                <span class="badge pull-right" style="margin-top: 10px;">
+                  {{ m.count }}
+                </span>
+                <h4>
+                  <a ng-href="#/manga/{{ m.name }}">
+                    {{ m.name }}
+                  </a>
+                </h4>
+              </div>
+              <div class="panel-body text-center" style="height: 300px;">
+                <a ng-href="#/manga/{{ m.name }}">
+                  <img ng-src="/{{m.name}}/logo.png" style="max-width: 100%; max-height: 275px;"/>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      <label ng-bind="info"></label>
+      
+    </div>
+
+  </div>
+</div>
