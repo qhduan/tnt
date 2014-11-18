@@ -138,7 +138,6 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   var context = canvas.getContext("2d");  
     
   function RemoveBorder (data) {
-        
     var wb = new Uint32Array(data.width * data.height);
     for (var i = 0; i < wb.length; i++) {
       var red = data.data[i * 4];
@@ -149,13 +148,11 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
       wb[i] = 0.299 * red + 0.587 * green + 0.114 * blue;
     }
     
-    var cut = {
-      left: 0,
-      right: 0,
-      top: 0,
-      bottom: 0,
-      threshold: 10
-    };
+    var left = 0;
+    var right = 0;
+    var top = 0;
+    var bottom = 0;
+    var threshold = 10;
     
     // cut top
     for (var i = 0; i < data.height; i++) {
@@ -172,8 +169,8 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
       }
       sd /= data.width;
       sd = Math.sqrt(sd);
-      if (sd < cut.threshold) {
-        cut.top++;
+      if (sd < threshold) {
+        top++;
       } else {
         break;
       }
@@ -194,8 +191,8 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
       }
       sd /= data.width;
       sd = Math.sqrt(sd);
-      if (sd < cut.threshold) {
-        cut.bottom++;
+      if (sd < threshold) {
+        bottom++;
       } else {
         break;
       }
@@ -216,8 +213,8 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
       }
       sd /= data.height;
       sd = Math.sqrt(sd);
-      if (sd < cut.threshold) {
-        cut.left++;
+      if (sd < threshold) {
+        left++;
       } else {
         break;
       }
@@ -238,20 +235,20 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
       }
       sd /= data.height;
       sd = Math.sqrt(sd);
-      if (sd < cut.threshold) {
-        cut.right++;
+      if (sd < threshold) {
+        right++;
       } else {
         break;
       }
     }
     
     var new_data = context.createImageData(
-      data.width - cut.left - cut.right,
-      data.height - cut.top - cut.bottom
+      data.width - left - right,
+      data.height - top - bottom
     );
     for (var i = 0; i < new_data.height; i++) {
       for (var j = 0; j < new_data.width; j++) {
-        var old_pos = ((i + cut.top) * data.width + (j + cut.left)) * 4;
+        var old_pos = ((i + top) * data.width + (j + left)) * 4;
         var new_pos = (i * new_data.width + j) * 4;
         new_data.data[new_pos] = data.data[old_pos];
         new_data.data[new_pos + 1] = data.data[old_pos + 1];
@@ -262,65 +259,79 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
     return new_data;
   }
   
-  function ComposeImage (data) {
-    var deferred = $q.defer();
-    
-    var imageObj = new Image();
-    imageObj.onload = function () {      
-      canvas.width = imageObj.width;
-      canvas.height = imageObj.height;
-      context.drawImage(imageObj, 0, 0, imageObj.width, imageObj.height, 0, 0, imageObj.width, imageObj.height);
-      
-      var imageData = context.getImageData(0, 0, imageObj.width, imageObj.height);
-      imageData = RemoveBorder(imageData);
-      
-      canvas.width = imageData.width;
-      canvas.height = imageData.height;
-      context.putImageData(imageData, 0, 0);
-      
-      deferred.resolve({
-        src: canvas.toDataURL(),
-        width: canvas.width,
-        height: canvas.height
-      });
-    };
-    imageObj.src = data;
-    
-    return deferred.promise;
-  }
   
+  var worker = new Worker("js/worker.js");
+  var worker_quest = {};
+  worker.onmessage = function (event) {
+    var id = event.data.id;
+    var imageData = event.data.data;
+    worker_quest[id](imageData);
+    delete worker_quest[id];
+  };
+  function WorkRemoveBorder (imageData, callback) {
+    var id = (new Date().getTime() * Math.random()).toFixed(0);
+    worker_quest[id] = callback;
+    worker.postMessage({
+      id: id,
+      data: imageData
+    });
+  }
   
   function GetImage (url) {
     var deferred = $q.defer();
     
     if (imageCache[url]) {
       deferred.resolve(imageCache[url]);
-    } else {
-      $http.get(url, {responseType: "arraybuffer"})
-        .success(function (data) {
-          var arr = new Uint8Array(data);
-          var str = new Array(arr.length);
-          for (var i = 0; i < arr.length; i++) {
-            str[i] = String.fromCharCode(arr[i]);
+    } else {      
+      var imageObj = new Image();
+      
+      imageObj.onload = function () {        
+        canvas.width = imageObj.width;
+        canvas.height = imageObj.height;
+        context.drawImage(imageObj, 0, 0, imageObj.width, imageObj.height, 0, 0, imageObj.width, imageObj.height);
+        
+        var imageData = context.getImageData(0, 0, imageObj.width, imageObj.height);
+        
+        WorkRemoveBorder(imageData, function (data) {
+          var imageData = context.createImageData(data.width, data.height);
+          for (var i = 0; i < imageData.data.length; i++) {
+            imageData.data[i] = data.data[i];
           }
-          str = str.join("");
-          str = window.btoa(str);
-                    
-          var type = "jpeg";
-          if (url.match(/\.png/i)) type = "png";
-          else if (url.match(/\.gif/i)) type = "gif";
-          else if (url.match(/\.bmp/i)) type = "bmp";
           
-          ComposeImage("data:image/" + type + ";base64," + str).then(function (data) {
-            imageCache[url] = data;
-            deferred.resolve(imageCache[url]);
-          });
+          canvas.width = imageData.width;
+          canvas.height = imageData.height;
+          context.putImageData(imageData, 0, 0);
           
-        }).
-        error(function () {
-          console.log("GetImage: $http error", arguments);
-          deferred.reject("$http error");
+          imageCache[url] = {
+            src: canvas.toDataURL("image/jpeg", 0.5),
+            width: imageData.width,
+            height: imageData.height
+          }; 
+          
+          deferred.resolve(imageCache[url]);
         });
+        
+        /*
+        imageData = RemoveBorder(imageData);
+        
+        canvas.width = imageData.width;
+        canvas.height = imageData.height;
+        context.putImageData(imageData, 0, 0);
+        
+        imageCache[url] = {
+          src: canvas.toDataURL("image/jpeg", 0.5),
+          width: imageData.width,
+          height: imageData.height
+        }; 
+        
+        deferred.resolve(imageCache[url]);
+        var mid = new Date().getTime();
+        console.log("solved", mid - st);
+        st = mid;
+        */
+      };
+      
+      imageObj.src = url;
     }
     return deferred.promise;
   }
@@ -328,7 +339,7 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   return {
     base: base,
     GetImage: GetImage,
-    GetManga: GetManga,
-    ComposeImage: ComposeImage
+    GetManga: GetManga//,
+    //ComposeImage: ComposeImage
   };
 });

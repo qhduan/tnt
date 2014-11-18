@@ -64,6 +64,9 @@
 <div
   class="text-center slideImage"
   ng-mouseup="mouseClick()"
+  ng-click="NextImage(1)"
+  ng-swipe-left="PrevImage(1)"
+  ng-swipe-right="NextImage(1)"
   ng-init="init()"
   oncontextmenu="event.preventDefault()"
   style="width: 100%;">

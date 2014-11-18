@@ -77,11 +77,13 @@ tntControllers.controller("seriesViewController",
       var documentHeight = $(document).height();
       var scrollTop = $(document).scrollTop();
       
-      if (documentHeight - (windowHeight + scrollTop) < 1000 && $scope.current) {
+      if (documentHeight - (windowHeight + scrollTop) < 2000 && $scope.current) {
         
-        $scope.loading = true;
+        if (documentHeight - (windowHeight + scrollTop) < 100) {
+          $scope.loading = true;
+        }
+        
         mangaService.GetImage($scope.current.url).then(function (data) {
-          
           $scope.loading = false;
           $scope.volName = $scope.current.volName;
           $rootScope.title = $scope.mangaName + " - " + $scope.volName;
@@ -89,14 +91,6 @@ tntControllers.controller("seriesViewController",
           
           $scope.loaded.push(data);
           $scope.current = $scope.manga.getNext($scope.current.volName, $scope.current.number);
-          
-          var image = $scope.current;
-          for (var i = 0; i < 3; i++) {
-            if (image) {
-              mangaService.GetImage(image.url);
-              image = $scope.manga.getNext(image.volName, image.number);
-            }
-          }
           
           $timeout(function () {
             LoadMore();
@@ -184,7 +178,7 @@ tntControllers.controller("slideViewController",
         $location.url("/slideView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
         $scope.loading = false;
         
-        // try to next 3 images
+        // try next 3 images
         var next = $scope.manga.getNext(image.volName, image.number);
         if (next) {
           mangaService.GetImage(next.url).then(function () {
