@@ -17,7 +17,7 @@
     <div class="row">
       <div ng-repeat="(volName,volList) in manga.mangaObj" class="col-xs-12 col-sm-6 col-md-4 col-lg-3 text-center">
         <div class="panel">
-          <a href="#/slideView/{{ mangaName + '/' + volName }}/1" class="btn btn-primary btn-lg">
+          <a href="#/slideView/{{ mangaName }}?volume={{ volName }}" class="btn btn-primary btn-lg">
             <span class="badge">
               {{ volList.length + "p" }}
             </span>
@@ -25,7 +25,7 @@
             &nbsp;
             Slide
           </a>
-          <a href="#/seriesView/{{ mangaName + '/' + volName }}" class="btn btn-default btn-lg">
+          <a href="#/seriesView/{{ mangaName }}?volume={{ volName }}" class="btn btn-default btn-lg">
             Series
           </a>
         </div>

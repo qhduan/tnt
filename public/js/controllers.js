@@ -59,17 +59,8 @@ tntControllers.controller("mangaController",
 
 
 tntControllers.controller("seriesViewController",
-  ["$rootScope", "$scope", "$routeParams", "$location", "$q", "$interval", "mangaService",
-  function ($rootScope, $scope, $routeParams, $location, $q, $interval, mangaService) {
-    var mangaName = $scope.mangaName = $routeParams.mangaName;
-    var volName = $scope.volName = $routeParams.volName;
-    
-    if (!mangaName || mangaName == "" || !volName || volName == "") {
-      return alertify.alert("Invalid Arguments!", function () {
-        window.location.href = "#/main";
-      });
-    }
-    
+  ["$rootScope", "$scope", "$routeParams", "$location", "$q", "$timeout", "mangaService",
+  function ($rootScope, $scope, $routeParams, $location, $q, $timeout, mangaService) {    
     $(window).off("beforeunload");
     $(window).on("beforeunload", function () {
       $(window).scrollTop(0);
@@ -77,32 +68,26 @@ tntControllers.controller("seriesViewController",
     
     $scope.loading = false;
     $scope.loaded = [];
-    $scope.nextVol = false;
     
     function LoadMore () {
       if ($scope.loading) return;
+      if (!$location.url().match(/\/seriesView\//)) return;
+      
       var windowHeight = $(window).height();
       var documentHeight = $(document).height();
       var scrollTop = $(document).scrollTop();
       
       if (documentHeight - (windowHeight + scrollTop) < 1000 && $scope.current) {
         
-        if ($scope.current.number == 0 && $scope.loaded.length > 0) {
-          $scope.nextVol = true;
-          return;
-        }
-        
         $scope.loading = true;
         mangaService.GetImage($scope.current.url).then(function (data) {
           
-          $rootScope.title = mangaName + " - " + volName;
-          $scope.volName = $scope.current.volName;
           $scope.loading = false;
+          $scope.volName = $scope.current.volName;
+          $rootScope.title = $scope.mangaName + " - " + $scope.volName;
+          $location.url("/seriesView/" + $scope.mangaName + "?volume=" + $scope.volName);
           
-          mangaService.ComposeImage(data).then(function (ret) {
-            $scope.loaded.push(ret);
-          });
-          
+          $scope.loaded.push(data);
           $scope.current = $scope.manga.getNext($scope.current.volName, $scope.current.number);
           
           var image = $scope.current;
@@ -113,52 +98,54 @@ tntControllers.controller("seriesViewController",
             }
           }
           
+          $timeout(function () {
+            LoadMore();
+          }, 300);
         });
+      } else {
+        $timeout(function () {
+          LoadMore();
+        }, 300);
       }
     }
     
-    mangaService.GetManga(mangaName).then(function (manga) {
-      $scope.manga = manga;
-      $scope.current = manga.get(volName, 0); // $scope.current point the next unload image
-      LoadMore();
-      $interval(function () {
+    $scope.init = function () {
+      $scope.mangaName = $routeParams.mangaName;
+      $scope.volName = $routeParams.volume;
+      
+      if (!$scope.mangaName || $scope.mangaName == "") {
+        return alertify.alert("Invalid Manga Name!", function () {
+          $location.url("/main");
+        });
+      }
+      
+      mangaService.GetManga($scope.mangaName).then(function (manga) {
+        $scope.manga = manga;
+        if (!$scope.volName) $scope.volName = manga.volume[0];
+        
+        $scope.current = manga.get($scope.volName, 0); // $scope.current point the next unload image
+        
+        if (!$scope.current) {
+          return alertify.alert("Invalid Volume Name!", function () {
+            $location.url("/main");
+          });
+        }
+        
         LoadMore();
-      }, 200);
-    });
+      });
+    }
     
-    $scope.NextVolumn = function () {
-      window.location.href = "#/seriesView/" + $scope.current.mangaName + "/" + $scope.current.volName;
-    };
   }
 ]);
+
 
 
 tntControllers.controller("slideViewController",
   ["$rootScope", "$scope", "$routeParams", "$location", "mangaService",
   function ($rootScope, $scope, $routeParams, $location, mangaService) {
-      
-    var mangaName = $routeParams.mangaName;
-    var volName = $routeParams.volName;
-    var pageNumber = $routeParams.pageNumber;
-    var canvas = document.createElement("canvas");
-    var context = canvas.getContext("2d");
     
-    if (!mangaName || mangaName == "" || !volName || volName == "" || !pageNumber || pageNumber == "" || isNaN(parseInt(pageNumber))) {
-      return alertify.alert("Invalid Arguments!", function () {
-        window.location.href = "#/main";
-      });
-    }
-    
-    pageNumber = parseInt(pageNumber) - 1;
-    
-    var mouseX = 0;
-    var mouseY = 0;
-    $(document).on("mousemove", function (event) {
-      mouseX = event.pageX;
-      mouseY = event.pageY;
-    });
-
     var lastMouseDown = null;
+    $(document).off("mousedown");
     $(document).on("mousedown", function (event) {
       event.preventDefault();
       switch (event.which) {
@@ -177,29 +164,44 @@ tntControllers.controller("slideViewController",
     });
     
     function ShowImage () {
-      var image = $scope.manga.get(volName, pageNumber);
-      var url = image.url;
+      $scope.loading = true;
+      var image = $scope.manga.get($scope.volName, $scope.pageNumber);
       
-      function Display (data) {        
-        mangaService.ComposeImage(data).then(function (ret) {
-          $(".slideImage").each(function () {
-            this.style.backgroundImage = "url('" + ret.src + "')";
-            this.style.backgroundRepeat = "no-repeat";
-            this.style.backgroundPosition = "center";
-            this.style.backgroundSize = "contain";
-            this.style.height = ($(window).height() - 51) + "px";
-            this.style.marginTop = "51px";
-          });
-        
-          $rootScope.title = mangaName + " - " + image.volName + " - " + image.number + "p";
-          $scope.mangaName = mangaName;
-          $scope.volName = volName;
-          $scope.pageNumber = pageNumber;
+      function Display (data) {
+        $(".slideImage").each(function () {
+          this.style.backgroundImage = "url('" + data.src + "')";
+          this.style.backgroundRepeat = "no-repeat";
+          this.style.backgroundPosition = "center";
+          this.style.backgroundSize = "contain";
+          this.style.height = ($(window).height() - 51) + "px";
+          this.style.marginTop = "51px";
         });
+      
+        $scope.mangaName = image.mangaName;
+        $scope.volName = image.volName;
+        $scope.pageNumber = image.number;
+        $rootScope.title = image.mangaName + " - " + image.volName + " - " + (image.number + 1) + "p";
+        $location.url("/slideView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
+        $scope.loading = false;
+        
+        // try to next 3 images
+        var next = $scope.manga.getNext(image.volName, image.number);
+        if (next) {
+          mangaService.GetImage(next.url).then(function () {
+            next = $scope.manga.getNext(next.volName, next.number);
+            if (next) {
+              mangaService.GetImage(next.url).then(function () {
+                next = $scope.manga.getNext(next.volName, next.number);
+                if (next) {
+                  mangaService.GetImage(next.url);
+                }
+              });
+            }
+          });
+        }
       }
     
-    
-      mangaService.GetImage(url).then(Display);
+      mangaService.GetImage(image.url).then(Display);
     };
     
     $(window).off("resize");
@@ -210,39 +212,49 @@ tntControllers.controller("slideViewController",
       });
     });
     
-    $scope.FirstImage = function () {
-      var image = $scope.manga.get(volName, 0);
+    $scope.PrevVolume = function () {
+      var image = $scope.manga.getPrev($scope.volName, 0);
       if (image) {
-        $location.path("/slideView/" + mangaName + "/" + image.volName + "/" + (image.number + 1));
+        image = $scope.manga.get(image.volName, 0);
+        $scope.volName = image.volName;
+        $scope.pageNumber = image.number;
+        ShowImage();
       }
     };
     
-    $scope.LastImage = function () {
-      var image = $scope.manga.get(volName, $scope.manga.mangaObj[volName].length - 1);
+    $scope.NextVolume = function () {
+      var image = $scope.manga.getNext($scope.volName, $scope.manga.mangaObj[$scope.volName].length - 1);
       if (image) {
-        $location.path("/slideView/" + mangaName + "/" + image.volName + "/" + (image.number + 1));
+        image = $scope.manga.get(image.volName, 0);
+        $scope.volName = image.volName;
+        $scope.pageNumber = image.number;
+        ShowImage();
       }
     };
     
     $scope.PrevImage = function (n) {
-      var image = $scope.manga.get(volName, pageNumber);
+      var image = $scope.manga.get($scope.volName, $scope.pageNumber);
       for (var i = 0; i < n; i++) {
         image = $scope.manga.getPrev(image.volName, image.number);
         if (!image) break;
       }
       if (image) {
-        $location.path("/slideView/" + mangaName + "/" + image.volName + "/" + (image.number + 1));
+        $scope.volName = image.volName;
+        $scope.pageNumber = image.number;
+        ShowImage();
       }
     };
     
     $scope.NextImage = function (n) {
-      var image = $scope.manga.get(volName, pageNumber);
+      var image = $scope.manga.get($scope.volName, $scope.pageNumber);
       for (var i = 0; i < n; i++) {
         image = $scope.manga.getNext(image.volName, image.number);
         if (!image) break;
       }
       if (image) {
-        $location.path("/slideView/" + mangaName + "/" + image.volName + "/" + (image.number + 1));
+        $scope.volName = image.volName;
+        $scope.pageNumber = image.number;
+        ShowImage();
       }
     };
     
@@ -254,33 +266,32 @@ tntControllers.controller("slideViewController",
       }
     };
     
+    $scope.loading = true;
     $scope.init = function () {
-      mangaService.GetManga(mangaName).then(function (manga) {
+      $scope.mangaName = $routeParams.mangaName;
+      if (!$scope.mangaName || $scope.mangaName == "") {
+        return alertify.alert("Invalid Manga Name!", function () {
+            window.location.href = "#/main";
+        });
+      }
+      
+      mangaService.GetManga($scope.mangaName).then(function (manga) {
         $scope.manga = manga;
-        if (!manga.get(volName, pageNumber)) {
+        $scope.volName = $routeParams.volume;
+        $scope.pageNumber = parseInt($routeParams.page);
+        
+        if (!$scope.volName) $scope.volName = manga.volume[0]; // get first volume name of manga
+        if (isNaN($scope.pageNumber)) $scope.pageNumber = 1;
+        
+        $scope.pageNumber--;
+        
+        if (!manga.get($scope.volName, $scope.pageNumber)) {
           return alertify.alert("Volume Not Found!", function () {
-            window.location.href = "#/manga/" + encodeURIComponent(mangaName);
+            window.location.href = "#/manga/" + $scope.mangaName;
           });
         }
-        ShowImage();
         
-        // try to next 2 images
-        setTimeout(function () {
-          var prev = manga.getPrev(volName, pageNumber);
-          if (prev) {
-            mangaService.GetImage(prev.url);
-          }
-          var next = manga.getNext(volName, pageNumber);
-          if (next) {
-            mangaService.GetImage(next.url);
-              setTimeout(function () {
-              next = manga.getNext(next.volName, next.number);
-              if (next) {
-                mangaService.GetImage(next.url);
-              }
-            }, 600);
-          }
-        }, 400);
+        ShowImage();
       });
     };
   }
