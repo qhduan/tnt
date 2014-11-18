@@ -9,6 +9,9 @@ tntControllers.controller("mainController", function ($rootScope, $scope, $route
   $http.get(mangaService.base + "manga.json")
     .success(function (data) {
       $scope.mangaList = data;
+      $scope.mangaList.forEach(function (elem, i, a) {
+        a[i].logo = MangaBase + elem.name + "/logo.png";
+      });
       $scope.info = "Loaded " + data.length + " Manga";
     }).
     error(function () {

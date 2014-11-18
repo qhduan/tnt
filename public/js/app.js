@@ -1,5 +1,8 @@
 
 var tntApp = angular.module("tntApp", ["ngRoute", "ngAnimate", "ngTouch", "tntControllers"]);
+  
+//var MangaBase = "/";
+var MangaBase = "http://manga-cache.oss-cn-hangzhou.aliyuncs.com/";
 
 tntApp.config(["$routeProvider", function ($routeProvider) {
   $routeProvider.
@@ -66,6 +69,7 @@ function Manga (mangaName, mangaObj, base) {
   self.volume = Object.keys(mangaObj);
   self.list = {};
   self.logo = base + mangaName + "/logo.png";
+  
   self.volume.forEach(function (volName) {
     mangaObj[volName].forEach(function (imageName, i) {
       var key = mangaName + "-" + volName + "-" + i;
@@ -111,7 +115,7 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   var imageCache = {};
   var mangaCache = {};
   var mangaListCache = {};
-  var base = "/";
+  var base = MangaBase;
   
   function GetManga (mangaName) {
     var deferred = $q.defer();
@@ -282,56 +286,63 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
     
     if (imageCache[url]) {
       deferred.resolve(imageCache[url]);
-    } else {      
-      var imageObj = new Image();
+    } else {
       
-      imageObj.onload = function () {        
-        canvas.width = imageObj.width;
-        canvas.height = imageObj.height;
-        context.drawImage(imageObj, 0, 0, imageObj.width, imageObj.height, 0, 0, imageObj.width, imageObj.height);
-        
-        var imageData = context.getImageData(0, 0, imageObj.width, imageObj.height);
-        
-        WorkRemoveBorder(imageData, function (data) {
-          var imageData = context.createImageData(data.width, data.height);
-          for (var i = 0; i < imageData.data.length; i++) {
-            imageData.data[i] = data.data[i];
+      // use ajax get image, because browser has bad security issue
+      $http.get(url, { responseType: "arraybuffer" })
+        .success(function (buf) {
+          
+          // convert "arraybuffer" to base64
+          var binary = "";
+          var bytes = new Uint8Array(buf);
+          for (var i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
           }
+          var base64 = window.btoa(binary);
           
-          canvas.width = imageData.width;
-          canvas.height = imageData.height;
-          context.putImageData(imageData, 0, 0);
+          // get image's type and use mime type generate data URI
+          var type = "jpeg";
+          if (url.match(/\.png/i)) type = "png";
+          if (url.match(/\.gif/i)) type = "gif";
+          if (url.match(/\.bmp/i)) type = "bmp";
+          var src = "data:image/" + type + ";base64," + base64;
           
-          imageCache[url] = {
-            src: canvas.toDataURL("image/jpeg", 0.5),
-            width: imageData.width,
-            height: imageData.height
-          }; 
+          // create image object to load the data URI
+          var imageObj = new Image();
           
-          deferred.resolve(imageCache[url]);
+          imageObj.onload = function () {  
+            // draw image into canvas      
+            canvas.width = imageObj.width;
+            canvas.height = imageObj.height;
+            context.drawImage(imageObj, 0, 0, imageObj.width, imageObj.height, 0, 0, imageObj.width, imageObj.height);
+
+            // do some compose
+            var imageData = context.getImageData(0, 0, imageObj.width, imageObj.height);
+            
+            // use RemoveBorder in 'Worker.js' to get image without border
+            WorkRemoveBorder(imageData, function (data) {
+              var imageData = context.createImageData(data.width, data.height);
+              for (var i = 0; i < imageData.data.length; i++) {
+                imageData.data[i] = data.data[i];
+              }
+              
+              canvas.width = imageData.width;
+              canvas.height = imageData.height;
+              context.putImageData(imageData, 0, 0);
+              
+              imageCache[url] = {
+                src: canvas.toDataURL("image/jpeg", 0.5), // image quality is 0.5
+                width: imageData.width,
+                height: imageData.height
+              }; 
+              
+              deferred.resolve(imageCache[url]);
+            });
+          };
+          
+          imageObj.src = src;
+
         });
-        
-        /*
-        imageData = RemoveBorder(imageData);
-        
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-        context.putImageData(imageData, 0, 0);
-        
-        imageCache[url] = {
-          src: canvas.toDataURL("image/jpeg", 0.5),
-          width: imageData.width,
-          height: imageData.height
-        }; 
-        
-        deferred.resolve(imageCache[url]);
-        var mid = new Date().getTime();
-        console.log("solved", mid - st);
-        st = mid;
-        */
-      };
-      
-      imageObj.src = url;
     }
     return deferred.promise;
   }
