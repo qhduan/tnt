@@ -1,5 +1,5 @@
 
-var tntApp = angular.module("tntApp", ["ngRoute", "ngAnimate", "ngSanitize", "tntControllers"]);
+var tntApp = angular.module("tntApp", ["ngRoute", "ngAnimate", "tntControllers"]);
 
 tntApp.config(["$routeProvider", function ($routeProvider) {
   $routeProvider.
