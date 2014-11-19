@@ -178,7 +178,14 @@ tntControllers.controller("slideViewController",
           }
           this.style.marginTop = "51px";
           this.appendChild(data.src);
-          data.src.style.height = ($(window).height() - 51) + "px";
+          
+          var ratio = data.width / data.height;
+          
+          var new_height = ($(window).height() - 51);
+          var new_width = new_height * ratio;
+          
+          data.src.style.height = new_height + "px";
+          data.src.style.width = new_width + "px";
         });
       
         $scope.mangaName = image.mangaName;
