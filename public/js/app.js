@@ -128,6 +128,9 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
         deferred.resolve(data);
       })
       .fail(function (jqXHR, textStatus) {
+        for (var i in jqXHR) {
+          console.log(i, jqXHR[i]);
+        }
         console.log(jqXHR, textStatus);
         deferred.reject("GetManga $.get error, " + textStatus);
       });
