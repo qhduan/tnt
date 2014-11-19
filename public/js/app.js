@@ -119,7 +119,6 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   
   function GetMangaList () {
     var deferred = $q.defer();
-    $.support.cors = true;
     $.ajax({
       type: "GET",
       url: MangaBase + "/manga.json",
@@ -144,7 +143,6 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
     if (mangaCache[mangaName]) {
       deferred.resolve(mangaCache[mangaName]);
     } else {
-      $.support.cors = true;
       $.ajax({
         type: "GET",
         url: MangaBase + window.encodeURIComponent(mangaName) + "/manga.json",
