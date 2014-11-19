@@ -67,7 +67,7 @@ function Manga (mangaName, mangaObj) {
   self.mangaObj = mangaObj;
   self.volume = Object.keys(mangaObj);
   self.list = {};
-  self.logo = MangaBase + mangaName + "/logo.png";
+  self.logo = MangaBase + mangaName + "/logo.jpg";
   
   self.volume.forEach(function (volName) {
     mangaObj[volName].forEach(function (imageName, i) {
