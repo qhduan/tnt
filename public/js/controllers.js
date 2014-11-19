@@ -12,7 +12,7 @@ tntControllers.controller("mainController",
     mangaService.GetMangaList().then(function (data) {
       $scope.mangaList = data;
       $scope.mangaList.forEach(function (elem, i, a) {
-        a[i].logo = MangaBase + elem.name + "/logo.png";
+        a[i].logo = MangaBase + elem.name + "/logo.jpg";
       });
       $scope.info = "Loaded " + data.length + " Manga";
     }, function (err) {
