@@ -117,22 +117,42 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   var mangaCache = {};
   var mangaListCache = {};
   
+  function GetMangaList () {
+    var deferred = $q.defer();
+    $.ajax({
+      type: "GET",
+      url: MangaBase + "/manga.json",
+      dataType: "json"
+    })
+      .done(function (data) {
+        deferred.resolve(data);
+      })
+      .fail(function (jqXHR, textStatus) {
+        console.log(jqXHR, textStatus);
+        deferred.reject("GetManga $.get error, " + textStatus);
+      });
+    return deferred.promise;
+  }
+  
   function GetManga (mangaName) {
     var deferred = $q.defer();
     
     if (mangaCache[mangaName]) {
       deferred.resolve(mangaCache[mangaName]);
     } else {
-      $http.get(MangaBase + window.encodeURIComponent(mangaName) + "/manga.json")
-        .success(function (mangaObj) {
-          
-          var m = new Manga(mangaName, mangaObj);
+      $.ajax({
+        type: "GET",
+        url: MangaBase + window.encodeURIComponent(mangaName) + "/manga.json",
+        dataType: "json"
+      })
+        .done(function (data) {
+          var m = new Manga(mangaName, data);
           mangaCache[mangaName] = m;
           deferred.resolve(mangaCache[mangaName]);
-        }).
-        error(function (data, status, headers, config) {
-          console.log("GetManga: $http error", data, status, headers, config);
-          deferred.reject("$http error");
+        })
+        .fail(function (jqXHR, textStatus) {
+          console.log(jqXHR, textStatus);
+          deferred.reject("GetManga $.get error, " + textStatus);
         });
     }
     return deferred.promise;
@@ -180,6 +200,7 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   }
   
   return {
+    GetMangaList: GetMangaList,
     GetImage: GetImage,
     GetManga: GetManga
   };

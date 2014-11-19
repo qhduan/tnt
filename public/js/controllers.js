@@ -2,22 +2,25 @@
 var tntControllers = angular.module("tntControllers", []);
 
 
-tntControllers.controller("mainController", function ($rootScope, $scope, $routeParams, $http, mangaService) {
-  $rootScope.title = "Third New Tokyo City";
-  
-  $scope.info = "Start Loading Data";
-  $http.get(MangaBase + "manga.json")
-    .success(function (data) {
+tntControllers.controller("mainController",
+  ["$rootScope", "$scope", "$routeParams", "mangaService",
+  function ($rootScope, $scope, $routeParams, mangaService) {
+    $rootScope.title = "Third New Tokyo City";
+    
+    $scope.info = "Start Loading Data";
+    
+    mangaService.GetMangaList().then(function (data) {
       $scope.mangaList = data;
       $scope.mangaList.forEach(function (elem, i, a) {
         a[i].logo = MangaBase + elem.name + "/logo.png";
       });
       $scope.info = "Loaded " + data.length + " Manga";
-    }).
-    error(function () {
+    }, function (err) {
       $scope.info = "Loading Error";
+      alertify.alert("GetMangaList error, " + err);
     });
-});
+  }
+]);
 
 
 tntControllers.controller("mangaController",
