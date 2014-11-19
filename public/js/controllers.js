@@ -6,7 +6,7 @@ tntControllers.controller("mainController", function ($rootScope, $scope, $route
   $rootScope.title = "Third New Tokyo City";
   
   $scope.info = "Start Loading Data";
-  $http.get(mangaService.base + "manga.json")
+  $http.get(MangaBase + "manga.json")
     .success(function (data) {
       $scope.mangaList = data;
       $scope.mangaList.forEach(function (elem, i, a) {
@@ -45,11 +45,6 @@ tntControllers.controller("mangaController",
           count: manga.mangaObj[volName].length
         });
       });
-    
-      $http.get(mangaService.base + mangaName + "/description.txt")
-        .success(function (data) {
-          $scope.description = data;
-        });
     }, function (err) {
       alertify.alert(err, function () {
         window.location.href = "#/main";
@@ -63,8 +58,7 @@ tntControllers.controller("mangaController",
 
 tntControllers.controller("seriesViewController",
   ["$rootScope", "$scope", "$routeParams", "$location", "$q", "$timeout", "mangaService",
-  function ($rootScope, $scope, $routeParams, $location, $q, $timeout, mangaService) {    
-    $(window).off("beforeunload");
+  function ($rootScope, $scope, $routeParams, $location, $q, $timeout, mangaService) {
     $(window).on("beforeunload", function () {
       $(window).scrollTop(0);
     });
@@ -73,7 +67,6 @@ tntControllers.controller("seriesViewController",
     $scope.loaded = [];
     
     function LoadMore () {
-      if ($scope.loading) return;
       if (!$location.url().match(/\/seriesView\//)) return;
       
       var windowHeight = $(window).height();
@@ -82,24 +75,35 @@ tntControllers.controller("seriesViewController",
       
       if (documentHeight - (windowHeight + scrollTop) < 2000 && $scope.current) {
         
-        if (documentHeight - (windowHeight + scrollTop) < 100) {
+        if (documentHeight - (windowHeight + scrollTop) < 500) {
           $scope.loading = true;
         }
         
         mangaService.GetImage($scope.current.url).then(function (data) {
-          $scope.loading = false;
           $scope.volName = $scope.current.volName;
           $rootScope.title = $scope.mangaName + " - " + $scope.volName;
-          $location.url("/seriesView/" + $scope.mangaName + "?volume=" + $scope.volName);
           
-          $scope.loaded.push(data);
+          if ($location.path().match(/seriesView/)) {
+            $location.url("/seriesView/" + $scope.mangaName + "?volume=" + $scope.volName);
+          }
+          
           $scope.current = $scope.manga.getNext($scope.current.volName, $scope.current.number);
+          
+          $(".seriesImage").each(function () {
+            this.appendChild(data.src);
+            data.src.style.width = "100%";
+            data.src.style.maxWidth = data.width + "px";
+            var margin = document.createElement("div")
+            margin.style.height = "20px";
+            this.appendChild(margin);
+          });
           
           $timeout(function () {
             LoadMore();
           }, 300);
         });
       } else {
+        $scope.loading = false;
         $timeout(function () {
           LoadMore();
         }, 300);
@@ -112,7 +116,7 @@ tntControllers.controller("seriesViewController",
       
       if (!$scope.mangaName || $scope.mangaName == "") {
         return alertify.alert("Invalid Manga Name!", function () {
-          $location.url("/main");
+          window.location.href = "#/main";
         });
       }
       
@@ -124,7 +128,7 @@ tntControllers.controller("seriesViewController",
         
         if (!$scope.current) {
           return alertify.alert("Invalid Volume Name!", function () {
-            $location.url("/main");
+            window.location.href = "#/main";
           });
         }
         
@@ -166,20 +170,23 @@ tntControllers.controller("slideViewController",
       
       function Display (data) {
         $(".slideImage").each(function () {
-          this.style.backgroundImage = "url('" + data.src + "')";
-          this.style.backgroundRepeat = "no-repeat";
-          this.style.backgroundPosition = "center";
-          this.style.backgroundSize = "contain";
-          this.style.height = ($(window).height() - 51) + "px";
+          while(this.firstChild) {
+            this.removeChild(this.firstChild);
+          }
           this.style.marginTop = "51px";
+          this.appendChild(data.src);
+          data.src.style.height = ($(window).height() - 51) + "px";
         });
       
         $scope.mangaName = image.mangaName;
         $scope.volName = image.volName;
         $scope.pageNumber = image.number;
         $rootScope.title = image.mangaName + " - " + image.volName + " - " + (image.number + 1) + "p";
-        $location.url("/slideView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
         $scope.loading = false;
+        
+        if ($location.path().match(/slideView/)) {
+          $location.url("/slideView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
+        }
         
         // try next 3 images
         var next = $scope.manga.getNext(image.volName, image.number);
@@ -204,7 +211,7 @@ tntControllers.controller("slideViewController",
     $(window).off("resize");
     $(window).on("resize", function () {
       $(".slideImage").each(function () {
-        this.style.height = ($(window).height() - 51) + "px";
+        $(this).find("img").css("height", ($(window).height() - 51) + "px");
         this.style.marginTop = "51px";
       });
     });

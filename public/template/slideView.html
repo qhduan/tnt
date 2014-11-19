@@ -2,6 +2,9 @@
   body {
     background-color: darkgray;
   }
+  .slideImage {
+    width: 100%;
+  }
 </style>
 
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -61,12 +64,5 @@
   <h1 style="color: red; font-weight: bold;">Loading</h1>
 </div>
 
-<div
-  class="text-center slideImage"
-  ng-mouseup="mouseClick()"
-  ng-swipe-left="NextImage(1)"
-  ng-swipe-right="PrevImage(1)"
-  ng-init="init()"
-  oncontextmenu="event.preventDefault()"
-  style="width: 100%;">
-</div>
+<div class="text-center slideImage" ng-mouseup="mouseClick()" ng-swipe-left="NextImage(1)" ng-swipe-right="PrevImage(1)" ng-init="init()" oncontextmenu="event.preventDefault()"></div>
+

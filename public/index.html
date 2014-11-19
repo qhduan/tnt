@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" ng-app="tntApp">
+<html xmlns:ng="http://angularjs.org" lang="zh-CN" id="ng-app" ng-app="tntApp">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -15,12 +15,16 @@
   <link rel="stylesheet" href="css/alertify.bootstrap.css">
   <link rel="stylesheet" href="css/app.css">
   
-  <script src="js/jquery-2.1.1.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="js/ie/html5shiv.min.js"></script>
+    <script src="js/ie/respond.min.js"></script>
+  <![endif]-->
+  
+  <script src="js/jquery-1.11.1.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
   
   <script src="js/angular.min.js"></script>
   <script src="js/angular-route.min.js"></script>
-  <script src="js/angular-animate.min.js"></script>
   <script src="js/angular-touch.min.js"></script>
   <script src="js/alertify.min.js"></script>
   
@@ -28,8 +32,6 @@
   <script src="js/controllers.js"></script>
 </head>
 <body>
-  <div class="view-animate-container">
-    <div ng-view class="view-animate"></div>
-  </div>
+  <div ng-view></div>
 </body>
 </html>

@@ -26,21 +26,16 @@
       <li>
         <a href="#/slideView/{{ mangaName }}?volume={{ volName }}">Slide View</a>
       </li>
+      <li>
+        <p ng-show="loading" class="navbar-text" style="color: red;">
+          Loading, please wait a moment
+        </p>
+      </li>
     </ul>
   </div>
     
   
 </nav>
 
+<div class="seriesImage text-center" ng-init="init()"></div>  
 
-<div style="padding-top: 51px;" ng-init="init()">
-  
-  <div ng-show="loading" style="position: fixed; width: 100%; bottom: 150px; font-size: 50px;" class="text-center">
-    <h1 style="color: red; font-weight: bold;">Loading</h1>
-  </div>
-  
-  <div ng-repeat="img in loaded" class="text-center" style="margin: 10px 0;">
-    <img ng-src="{{ img.src }}" style="width: 100%; max-width: {{ img.width }}px;">
-  </div>
-  
-</div>
