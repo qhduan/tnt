@@ -130,8 +130,8 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
           mangaCache[mangaName] = m;
           deferred.resolve(mangaCache[mangaName]);
         }).
-        error(function () {
-          console.log("GetManga: $http error", arguments);
+        error(function (data, status, headers, config) {
+          console.log("GetManga: $http error", data, status, headers, config);
           deferred.reject("$http error");
         });
     }
