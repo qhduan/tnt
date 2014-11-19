@@ -19,6 +19,18 @@
     <script src="js/ie/html5shiv.min.js"></script>
     <script src="js/ie/respond.min.js"></script>
   <![endif]-->
+  <!--[if lte IE 8]>
+    <script>
+      document.createElement('ng-include');
+      document.createElement('ng-pluralize');
+      document.createElement('ng-view');
+
+      // Optionally these for CSS
+      document.createElement('ng:include');
+      document.createElement('ng:pluralize');
+      document.createElement('ng:view');
+    </script>
+  <![endif]-->
   
   <script src="js/jquery-1.11.1.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
