@@ -49,6 +49,17 @@
   <script src="js/controllers.js"></script>
 </head>
 <body>
-  <div ng-view></div>
+  <div ng-view class="tnt-animation"></div>
+  
+  <div id="LoadingScreen" ng-show="LoadingScreen" style="position: fixed; width: 100%; bottom: 40%;" class="text-center">
+    <div style="width: 40%; margin-left: 30%;">
+      <div class="progress" style="height: 40px;">
+        <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar"  style="width: 100%;">
+          <span style="font-size: 30px; line-height: 40px;">Loading</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </body>
 </html>

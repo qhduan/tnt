@@ -1,5 +1,6 @@
 
 var tntApp = angular.module("tntApp", ["ngRoute", "ngTouch", "tntControllers"]);
+
   
 //var MangaBase = "/";
 var MangaBase = "http://manga-cache.oss-cn-hangzhou.aliyuncs.com/";
@@ -57,6 +58,18 @@ tntApp.run(['$route', '$rootScope', '$location', function ($route, $rootScope, $
     }
     return original.apply($location, [path]);
   };
+  
+  $rootScope.$on("$routeChangeStart", function () {
+    $rootScope.LoadingScreen = true;
+  });
+  
+  $rootScope.$on("$routeChangeSuccess", function () {
+    $rootScope.LoadingScreen = false;
+  });
+  
+  $rootScope.$on("$routeChangeError", function () {
+    $rootScope.LoadingScreen = false;
+  });
   
 }])
 

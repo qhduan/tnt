@@ -1,6 +1,10 @@
 <style>
   body {
     background-color: darkgray;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:none;
+    user-select:none;
   }
   .slideImage {
     width: 100%;
@@ -66,8 +70,14 @@
 
 </nav>
   
-<div ng-show="loading" style="position: fixed; width: 100%; bottom: 150px; font-size: 50px;" class="text-center">
-  <h1 style="color: red; font-weight: bold;">Loading</h1>
+<div ng-show="loading" style="position: fixed; width: 100%; bottom: 40%;" class="text-center">
+  <div style="width: 40%; margin-left: 30%;">
+    <div class="progress" style="height: 40px;">
+      <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar"  style="width: 100%;">
+        <span style="font-size: 30px; line-height: 40px;">Loading</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div keypress resize mousewheel class="text-center slideImage" ng-mouseup="MouseClick($event)" ng-click="GoImage(1)" ng-swipe-left="GoImage(1)" ng-swipe-right="GoImage(-1)" ng-init="init()" oncontextmenu="event.preventDefault()"></div>
