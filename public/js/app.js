@@ -57,6 +57,7 @@ tntApp.run(['$route', '$rootScope', '$location', function ($route, $rootScope, $
     }
     return original.apply($location, [path]);
   };
+  
 }])
 
 
@@ -183,7 +184,8 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
           imageCache[url] = {
             src: imageObj,
             width: imageObj.width,
-            height: imageObj.height
+            height: imageObj.height,
+            ratio: imageObj.width / imageObj.height
           };
           
           if (ImageGettingList[url].length) {
@@ -206,5 +208,57 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
     GetMangaList: GetMangaList,
     GetImage: GetImage,
     GetManga: GetManga
+  };
+});
+
+tntApp.directive("resize", function ($window) {
+  return function (scope, element, attr) {
+    var w = angular.element($window);
+    scope.$watch(function () {
+      return {
+        "w": w.width(),
+        "h": w.height()
+      };
+    }, function (newValue, oldValue) {
+      scope.windowWidth = newValue.w;
+      scope.windowHeight = newValue.h;
+      typeof scope.onResize == "function" && scope.onResize({
+        width: newValue.w,
+        height: newValue.h
+      });
+    }, true);
+    w.bind("resize", function () {
+      scope.$apply();
+    });
+  };
+});
+
+tntApp.directive("mousewheel", function () {
+  return function (scope, element, attr) {
+    function handler (event) {
+      if (typeof scope.onMousewheel == "function") {
+        scope.onMousewheel(event);
+        scope.$apply();
+      }
+    }
+    element.each(function () {
+      if (this.addEventListener) {
+        this.addEventListener("mousewheel", handler, false);
+        this.addEventListener("DOMMouseScroll", handler, false);
+      } else {
+        this.attachEvent("onmousewheel", handler);
+      }
+    });
+  };
+});
+
+tntApp.directive("keypress", function() {
+  return function (scope, element, attr){
+    $(document).on("keypress", function(event) {
+      if (typeof scope.onKeypress == "function") {
+        scope.onKeypress(event);
+        scope.$apply();
+      }
+   });
   };
 });
