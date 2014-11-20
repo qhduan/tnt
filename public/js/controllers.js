@@ -177,7 +177,7 @@ tntControllers.controller("slideViewController",
           
           this.appendChild(data.src);
           
-          var new_height = $(window).height();
+          var new_height = $(window).height() - 51;
           var new_width = new_height * data.ratio;
           
           if (new_width > $(window).width()) {
