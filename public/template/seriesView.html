@@ -35,16 +35,21 @@
       <li>
         <a href="#/slideView/{{ mangaName }}?volume={{ volName }}">Slide View</a>
       </li>
-      <li>
-        <p ng-show="loading" class="navbar-text" style="color: red;">
-          Loading, please wait a moment
-        </p>
-      </li>
     </ul>
   </div>
     
   
 </nav>
+  
+<div ng-show="loading" style="position: fixed; width: 100%; bottom: 40%;" class="text-center">
+  <div style="width: 40%; margin-left: 30%;">
+    <div class="progress" style="height: 40px;">
+      <div class="progress-bar progress-bar-info progress-bar-striped active" role="progressbar"  style="width: 100%;">
+        <span style="font-size: 30px; line-height: 40px;">Loading</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="seriesImage text-center" ng-click="Click()" ng-init="init()"></div>  
 

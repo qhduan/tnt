@@ -71,17 +71,18 @@ tntControllers.controller("seriesViewController",
     function LoadMore () {
       if (!$location.url().match(/seriesView/)) return;
       
-      var windowHeight = $(window).height();
       var documentHeight = $(document).height();
+      var windowHeight = $(window).height();
       var scrollTop = $(document).scrollTop();
       
       if (documentHeight - (windowHeight + scrollTop) < 2000 && $scope.current) {
         
-        if (documentHeight - (windowHeight + scrollTop) < 500) {
+        if (Math.abs(documentHeight - (windowHeight + scrollTop)) < 500) {
           $scope.loading = true;
         }
         
         mangaService.GetImage($scope.current.url).then(function (data) {
+          $scope.loading = false;
           if (!$location.url().match(/seriesView/)) return;
           
           $scope.volName = $scope.current.volName;
@@ -104,13 +105,12 @@ tntControllers.controller("seriesViewController",
           
           $timeout(function () {
             LoadMore();
-          }, 300);
+          }, 200);
         });
       } else {
-        $scope.loading = false;
         $timeout(function () {
           LoadMore();
-        }, 300);
+        }, 200);
       }
     }
     
@@ -235,20 +235,14 @@ tntControllers.controller("slideViewController",
     $scope.PrevVolume = function () {
       var image = $scope.manga.getPrev($scope.volName, 0);
       if (image) {
-        image = $scope.manga.get(image.volName, 0);
-        $scope.volName = image.volName;
-        $scope.pageNumber = image.number;
-        ShowImage();
+        $location.url("/slideView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
       }
     };
     
     $scope.NextVolume = function () {
       var image = $scope.manga.getNext($scope.volName, $scope.manga.mangaObj[$scope.volName].length - 1);
       if (image) {
-        image = $scope.manga.get(image.volName, 0);
-        $scope.volName = image.volName;
-        $scope.pageNumber = image.number;
-        ShowImage();
+        $location.url("/slideView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
       }
     };
     

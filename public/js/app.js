@@ -183,7 +183,6 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
     if (imageCache[url]) {
       deferred.resolve(imageCache[url]);
     } else {
-      
       if (ImageGettingList[url]) { // the image is getting by other thread
         ImageGettingList[url].push(function () {
           deferred.resolve(imageCache[url]);
@@ -192,8 +191,7 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
         ImageGettingList[url] = [];
         var imageObj = document.createElement("img");
         
-        imageObj.onload = function () {
-          
+        imageObj.onload = function () {          
           imageCache[url] = {
             src: imageObj,
             width: imageObj.width,
@@ -208,10 +206,27 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
           }
           
           delete  ImageGettingList[url];
-          deferred.resolve(imageCache[url]);
+          //deferred.resolve(imageCache[url]);
         };
         
-        imageObj.src = url;
+        var now = new Date().getTime();
+        imageObj.src = url + "?t=" + now + "#" + now;
+        
+        var start = 100;
+        var int = setInterval(function () {
+          start += 100;
+          if (imageCache[url]) {
+            clearInterval(int);
+            deferred.resolve(imageCache[url]);
+          } else {
+            if (start >= 20*1000) {
+              clearInterval(int);
+            } else if ((start % 5000) == 0) {
+              var now = new Date().getTime();
+              imageObj.src = url + "?t=" + now + "#" + now;
+            }
+          }
+        }, 100);
       }
     }
     return deferred.promise;
