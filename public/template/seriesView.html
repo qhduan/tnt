@@ -5,6 +5,9 @@
   .seriesImage {
     margin-top: 51px;
   }
+  .seriesImage > img {
+    max-width: 100%;
+  }
 </style>
 
 <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -22,18 +25,18 @@
   <div class="collapse navbar-collapse" id="navbar-collapse-1">
     <ul class="nav navbar-nav">
       <li>
-        <a ng-bind="mangaName" href="#/manga/{{ mangaName }}"></a>
+        <a href="#/manga/{{ last.mangaName }}">{{ last.mangaName }}</a>
       </li>
       <li>
-        <a ng-bind="volName" href="#/seriesView/{{ mangaName }}?volume={{ volName }}"></a>
+        <a href="#/seriesView/{{ last.mangaName }}?volume={{ last.volName }}">{{ last.volName }}</a>
       </li>
       <li>
-        <a href="#/seriesView/{{ mangaName }}?volume={{ volName }}">
-          {{ "Loaded: " + loaded.length }}
+        <a href="#/seriesView/{{ last.mangaName }}?volume={{ last.volName }}&page={{ last.number + 1 }}">
+          {{ (last.number + 1) + " / " + manga.mangaObj[last.volName].length }}
         </a>
       </li>
       <li>
-        <a href="#/slideView/{{ mangaName }}?volume={{ volName }}">Slide View</a>
+        <a href="#/slideView/{{ last.mangaName }}?volume={{ last.volName }}">Slide View</a>
       </li>
     </ul>
   </div>
@@ -51,5 +54,5 @@
   </div>
 </div>
 
-<div class="seriesImage text-center" ng-click="Click()" ng-init="init()"></div>  
+<div class="seriesImage text-center" ng-click="Click()" ng-init="init()"></div>
 

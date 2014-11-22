@@ -191,7 +191,7 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
         ImageGettingList[url] = [];
         var imageObj = document.createElement("img");
         
-        imageObj.onload = function () {          
+        function ImageOnload () {          
           imageCache[url] = {
             src: imageObj,
             width: imageObj.width,
@@ -206,11 +206,13 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
           }
           
           delete  ImageGettingList[url];
-          //deferred.resolve(imageCache[url]);
         };
         
         var now = new Date().getTime();
+        imageObj.onload = ImageOnload;
         imageObj.src = url + "?t=" + now + "#" + now;
+        
+        var reloadPoint = [5*1000, 10*1000, 20*1000, 35*1000, 55*1000];
         
         var start = 100;
         var int = setInterval(function () {
@@ -219,10 +221,14 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
             clearInterval(int);
             deferred.resolve(imageCache[url]);
           } else {
-            if (start >= 20*1000) {
+            if (start >= 60*1000) { // 60s
               clearInterval(int);
-            } else if ((start % 5000) == 0) {
+            } else if (reloadPoint.indexOf(start) != -1) { // retry per 5s
               var now = new Date().getTime();
+              imageObj.onload = function () {}; // set old imageObj to nothing
+              
+              imageObj = document.createElement("img"); // create new
+              imageObj.onload = ImageOnload;
               imageObj.src = url + "?t=" + now + "#" + now;
             }
           }

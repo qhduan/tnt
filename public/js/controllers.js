@@ -59,8 +59,8 @@ tntControllers.controller("mangaController",
 
 
 tntControllers.controller("seriesViewController",
-  ["$rootScope", "$scope", "$routeParams", "$location", "$q", "$timeout", "mangaService",
-  function ($rootScope, $scope, $routeParams, $location, $q, $timeout, mangaService) {
+  ["$rootScope", "$scope", "$routeParams", "$location", "$timeout", "mangaService",
+  function ($rootScope, $scope, $routeParams, $location, $timeout, mangaService) {
     $(window).on("beforeunload", function () {
       $(window).scrollTop(0);
     });
@@ -75,27 +75,39 @@ tntControllers.controller("seriesViewController",
       var windowHeight = $(window).height();
       var scrollTop = $(document).scrollTop();
       
-      if (documentHeight - (windowHeight + scrollTop) < 2000 && $scope.current) {
-        
-        if (Math.abs(documentHeight - (windowHeight + scrollTop)) < 500) {
-          $scope.loading = true;
-        }
+      if (documentHeight - (windowHeight + scrollTop) < 200 && $scope.current) {
+        $scope.loading = true;
         
         mangaService.GetImage($scope.current.url).then(function (data) {
           $scope.loading = false;
           if (!$location.url().match(/seriesView/)) return;
           
-          $scope.volName = $scope.current.volName;
-          $rootScope.title = $scope.mangaName + " - " + $scope.volName;
+          var image = $scope.current;
           
-          $location.url("/seriesView/" + $scope.mangaName + "?volume=" + $scope.volName);
+          $scope.volName = image.volName;
+          $rootScope.title = image.mangaName + " - " + image.volName + " - " + (image.number + 1);          
+          $location.url("/seriesView/" + image.mangaName + "?volume=" + image.volName + "&page=" + (image.number + 1));
+          $scope.last = image;
           
-          $scope.current = $scope.manga.getNext($scope.current.volName, $scope.current.number);
+          $scope.current = $scope.manga.getNext(image.volName, image.number);
+          
+          // try load next 3
+          var next = $scope.manga.getNext(image.volName, image.number);
+          if (next) {
+            mangaService.GetImage(next.url).then(function () {
+              next = $scope.manga.getNext(next.volName, next.number);
+              if (next) {
+                mangaService.GetImage(next.url).then(function () {
+                  next = $scope.manga.getNext(next.volName, next.number);
+                  if (next) {
+                    mangaService.GetImage(next.url);
+                  }
+                });
+              }
+            });
+          }
           
           $(".seriesImage").each(function () {
-            
-            data.src.style.width = "100%";
-            data.src.style.maxWidth = data.width + "px";
             this.appendChild(data.src);
             
             var margin = document.createElement("div")
@@ -105,12 +117,12 @@ tntControllers.controller("seriesViewController",
           
           $timeout(function () {
             LoadMore();
-          }, 200);
+          }, 50);
         });
       } else {
         $timeout(function () {
           LoadMore();
-        }, 200);
+        }, 50);
       }
     }
     
@@ -154,7 +166,7 @@ tntControllers.controller("slideViewController",
   ["$rootScope", "$scope", "$routeParams", "$location", "$document", "mangaService",
   function ($rootScope, $scope, $routeParams, $location, $document, mangaService) {
     
-    function ResizeImage () {
+    function ResizeImageContainer () {
       var element = $(".slideImage");
       var win_width = $(window).width();
       var win_height = $(window).height();
@@ -169,7 +181,9 @@ tntControllers.controller("slideViewController",
       var volName = $location.search().volume;
       var pageNumber = parseInt($location.search().page);
       
-      if (!volName || isNaN(pageNumber)) {
+      if (isNaN(pageNumber)) pageNumber = 1;
+      
+      if (!volName) {
         return alertify.alert("Invalid Arguments!", function () {
           window.location.href = "#/main";
         });
@@ -189,7 +203,7 @@ tntControllers.controller("slideViewController",
         
         ResizeImageContainer(this);
         
-        $(".slideImage").each(function () {          
+        $(".slideImage").each(function () {
           this.appendChild(data.src);
           data.src.style.maxWidth = "100%";
           data.src.style.maxHeight = "100%";
@@ -200,6 +214,7 @@ tntControllers.controller("slideViewController",
         $scope.pageNumber = image.number;
         $rootScope.title = image.mangaName + " - " + image.volName + " - " + (image.number + 1) + "p";
         
+        // try load next 3
         var next = $scope.manga.getNext(image.volName, image.number);
         if (next) {
           mangaService.GetImage(next.url).then(function () {
