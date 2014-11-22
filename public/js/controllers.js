@@ -154,6 +154,17 @@ tntControllers.controller("slideViewController",
   ["$rootScope", "$scope", "$routeParams", "$location", "$document", "mangaService",
   function ($rootScope, $scope, $routeParams, $location, $document, mangaService) {
     
+    function ResizeImage () {
+      var element = $(".slideImage");
+      var win_width = $(window).width();
+      var win_height = $(window).height();
+      element.css("height", (win_height - 51) + "px");
+      element.css("width", win_width + "px");
+      element.css("max-height", (win_height - 51) + "px");
+      element.css("max-width", win_width + "px");
+      element.css("margin-top", "51px");
+    }
+    
     function ShowImage () {
       var volName = $location.search().volume;
       var pageNumber = parseInt($location.search().page);
@@ -174,19 +185,14 @@ tntControllers.controller("slideViewController",
           while(this.firstChild) {
             this.removeChild(this.firstChild);
           }
-          
+        });
+        
+        ResizeImageContainer(this);
+        
+        $(".slideImage").each(function () {          
           this.appendChild(data.src);
-          
-          var new_height = $(window).height() - 51;
-          var new_width = new_height * data.ratio;
-          
-          if (new_width > $(window).width()) {
-            new_width = $(window).width();
-            new_height = new_width / data.ratio;
-          }
-          
-          data.src.style.height = new_height + "px";
-          data.src.style.width = new_width + "px";
+          data.src.style.maxWidth = "100%";
+          data.src.style.maxHeight = "100%";
         });
       
         $scope.mangaName = image.mangaName;
@@ -211,25 +217,8 @@ tntControllers.controller("slideViewController",
       });
     };
     
-    $scope.onResize = function (value) {
-      $(".slideImage").each(function () {
-        
-        var image = $(this).find("img");
-          
-        var ratio = image.width() / image.height();
-        
-        var new_height = value.height - 51;
-        var new_width = new_height * ratio;
-          
-        if (new_width > value.width) {
-          new_width = value.width;
-          new_height = new_width / ratio;
-        }
-        
-        image.css("height", new_height + "px");
-        image.css("width", new_width + "px");
-        this.style.marginTop = "51px";
-      });
+    $scope.onResize = function () {
+      ResizeImageContainer();
     };
     
     $scope.PrevVolume = function () {

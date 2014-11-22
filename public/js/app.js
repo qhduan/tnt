@@ -239,54 +239,42 @@ tntApp.factory("mangaService", function ($rootScope, $http, $q) {
   };
 });
 
-tntApp.directive("resize", function ($window) {
+tntApp.directive("ngResize", ["$parse", function ($parse) {
   return function (scope, element, attr) {
-    var w = angular.element($window);
-    scope.$watch(function () {
-      return {
-        "w": w.width(),
-        "h": w.height()
-      };
-    }, function (newValue, oldValue) {
-      scope.windowWidth = newValue.w;
-      scope.windowHeight = newValue.h;
-      typeof scope.onResize == "function" && scope.onResize({
-        width: newValue.w,
-        height: newValue.h
-      });
-    }, true);
-    w.bind("resize", function () {
+    var handler = $parse(attr["ngResize"]);
+    $(window).on("resize", function(event) {
+      handler(scope, {"$event": event});
       scope.$apply();
     });
   };
-});
+}]);
 
-tntApp.directive("mousewheel", function () {
+
+
+tntApp.directive("ngMousewheel", ["$parse", function ($parse) {
   return function (scope, element, attr) {
-    function handler (event) {
-      if (typeof scope.onMousewheel == "function") {
-        scope.onMousewheel(event);
-        scope.$apply();
-      }
+    var handler = $parse(attr["ngMousewheel"]);
+    function handle (event) {
+      handler(scope, {"$event": event});
+      scope.$apply();
     }
     element.each(function () {
       if (this.addEventListener) {
-        this.addEventListener("mousewheel", handler, false);
-        this.addEventListener("DOMMouseScroll", handler, false);
+        this.addEventListener("mousewheel", handle, false);
+        this.addEventListener("DOMMouseScroll", handle, false);
       } else {
-        this.attachEvent("onmousewheel", handler);
+        this.attachEvent("onmousewheel", handle);
       }
     });
   };
-});
+}]);
 
-tntApp.directive("keypress", function() {
+tntApp.directive("ngKeypress", ["$parse", function($parse) {
   return function (scope, element, attr){
+    var handler = $parse(attr["ngKeypress"]);
     $(document).on("keypress", function(event) {
-      if (typeof scope.onKeypress == "function") {
-        scope.onKeypress(event);
-        scope.$apply();
-      }
-   });
+      handler(scope, {"$event": event});
+      scope.$apply();
+    });
   };
-});
+}]);

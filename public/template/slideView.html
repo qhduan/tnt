@@ -5,9 +5,8 @@
     -webkit-user-select: none;
     -ms-user-select:none;
     user-select:none;
-  }
-  .slideImage {
-    width: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
   }
 </style>
 
@@ -80,5 +79,5 @@
   </div>
 </div>
 
-<div keypress resize mousewheel class="text-center slideImage" ng-mouseup="MouseClick($event)" ng-click="GoImage(1)" ng-swipe-left="GoImage(1)" ng-swipe-right="GoImage(-1)" ng-init="init()" oncontextmenu="event.preventDefault()"></div>
+<div ng-keypress="onKeypress($event)" ng-resize="onResize($event)" ng-mousewheel="onMousewheel($event)" class="text-center slideImage" ng-mouseup="MouseClick($event)" ng-click="GoImage(1)" ng-swipe-left="GoImage(1)" ng-swipe-right="GoImage(-1)" ng-init="init()" oncontextmenu="event.preventDefault()"></div>
 
